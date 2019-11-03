@@ -36,13 +36,13 @@ pub enum FlushEvent {
 }
 
 pub trait StatsStrategy {
-    fn add(&mut self, event: FlushEvent);
+    fn add(&mut self, event: FlushEvent, batch_number: usize);
 }
 
 pub struct NoStats;
 
 impl StatsStrategy for NoStats {
-    fn add(&mut self, _event: FlushEvent) {}
+    fn add(&mut self, _event: FlushEvent, _batch_number: usize) {}
 }
 
 #[derive(Debug)]
@@ -149,8 +149,10 @@ where
         if self.min_duration.is_some() {
             *self.as_mut().last_flush_time() = Instant::now();
         }
-        self.as_mut().stats().add(event);
-        return Poll::Ready(Some(self.as_mut().take()));
+
+        let items = self.as_mut().take();
+        self.as_mut().stats().add(event, items.len());
+        return Poll::Ready(Some(items));
     }
 }
 
