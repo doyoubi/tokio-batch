@@ -33,6 +33,7 @@ pub enum FlushEvent {
     Full,
     MinTimeoutTimer,
     MaxTimeoutTimer,
+    Last,
 }
 
 pub trait StatsStrategy {
@@ -187,6 +188,7 @@ impl<St: Stream, Stats: StatsStrategy> Stream for ChunksTimeout<St, Stats> {
                             None
                         } else {
                             let full_buf = mem::replace(self.as_mut().items(), Vec::new());
+                            self.as_mut().stats().add(FlushEvent::Last, full_buf.len());
                             Some(full_buf)
                         };
 
